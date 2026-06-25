@@ -27,10 +27,18 @@ const generateMemberCode = async (tenantId) => {
 // @access  Private
 router.get('/', async (req, res) => {
   const { status, search, membershipStatus } = req.query;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+
   let query = { tenantId: req.tenantId };
 
   if (status) {
-    query.status = status;
+    if (status === 'expired') {
+      query.membershipEnd = { $lt: new Date() };
+    } else {
+      query.status = status;
+    }
   }
   if (membershipStatus) {
     query.membershipStatus = membershipStatus;
@@ -45,8 +53,22 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    const members = await Member.find(query).populate('planId', 'name price');
-    res.json({ success: true, count: members.length, data: members });
+    const total = await Member.countDocuments(query);
+    const members = await Member.find(query)
+      .populate('planId', 'name price')
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        page,
+        limit
+      },
+      data: members
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error fetching members' });

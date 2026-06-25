@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import {
   Users,
@@ -6,7 +7,7 @@ import {
   TrendingUp,
   Receipt,
   Sparkles,
-  DollarSign,
+  IndianRupee,
   UserCheck,
   UserPlus,
   AlertTriangle,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export const Dashboard = () => {
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [recentMembers, setRecentMembers] = useState([]);
   const [recentPayments, setRecentPayments] = useState([]);
@@ -181,9 +183,9 @@ export const Dashboard = () => {
         <div className="glass-card">
           <div className="flex-between">
             <span className="stat-card-label">Monthly Revenue</span>
-            <DollarSign size={20} className="text-success" />
+            <IndianRupee size={20} className="text-success" />
           </div>
-          <p className="stat-card-value">${metrics?.monthlyRevenue || 0}</p>
+          <p className="stat-card-value">₹{metrics?.monthlyRevenue || 0}</p>
           <p className="stat-card-trend up">
             Current calendar month
           </p>
@@ -194,9 +196,24 @@ export const Dashboard = () => {
             <span className="stat-card-label">Monthly Expenses</span>
             <Receipt size={20} className="text-danger" />
           </div>
-          <p className="stat-card-value">${metrics?.monthlyExpenses || 0}</p>
+          <p className="stat-card-value">₹{metrics?.monthlyExpenses || 0}</p>
           <p className="stat-card-trend down">
             Cash outgoings
+          </p>
+        </div>
+
+        <div
+          className="glass-card"
+          onClick={() => navigate('/members?filter=expired')}
+          style={{ cursor: 'pointer', borderLeft: '4px solid var(--danger)' }}
+        >
+          <div className="flex-between">
+            <span className="stat-card-label">Expired Memberships</span>
+            <AlertTriangle size={20} className="text-danger" />
+          </div>
+          <p className="stat-card-value text-danger">{metrics?.expiredCount || 0}</p>
+          <p className="stat-card-trend down" style={{ color: 'var(--text-secondary)' }}>
+            Click to renew members
           </p>
         </div>
       </div>
@@ -249,7 +266,7 @@ export const Dashboard = () => {
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>+${pay.amount}</p>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>+₹{pay.amount}</p>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textTransform: 'capitalize' }}>{pay.paymentMethod}</p>
                   </div>
                 </div>

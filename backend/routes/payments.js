@@ -12,7 +12,7 @@ router.use(protect);
 // @desc    Record a new payment for a member
 // @access  Private
 router.post('/', async (req, res) => {
-  const { memberId, planId, amount, paymentMethod, notes } = req.body;
+  const { memberId, planId, amount, paymentMethod, notes, paymentDate } = req.body;
 
   try {
     if (!memberId || !planId || amount === undefined || !paymentMethod) {
@@ -38,6 +38,7 @@ router.post('/', async (req, res) => {
       planId,
       amount,
       paymentMethod,
+      paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
       notes,
     });
 
@@ -60,13 +61,38 @@ router.post('/', async (req, res) => {
 // @desc    Get all payment transactions
 // @access  Private
 router.get('/', async (req, res) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+
   try {
+    const total = await Payment.countDocuments({ tenantId: req.tenantId });
+
+    // Aggregate total revenue for this tenant
+    const revenueAggregation = await Payment.aggregate([
+      { $match: { tenantId: req.tenantId } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    const totalRevenue = revenueAggregation.length > 0 ? revenueAggregation[0].total : 0;
+
     const payments = await Payment.find({ tenantId: req.tenantId })
       .populate('memberId', 'name memberCode email phone')
       .populate('planId', 'name price')
-      .sort({ paymentDate: -1 });
+      .sort({ paymentDate: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.json({ success: true, count: payments.length, data: payments });
+    res.json({
+      success: true,
+      totalRevenue,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        page,
+        limit
+      },
+      data: payments
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error fetching payments' });

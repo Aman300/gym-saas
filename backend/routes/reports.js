@@ -82,6 +82,12 @@ router.get('/dashboard', async (req, res) => {
       membershipEnd: { $gte: now, $lte: sevenDaysFromNow }
     });
 
+    // 9. Expired count
+    const expiredCount = await Member.countDocuments({
+      tenantId,
+      membershipEnd: { $lt: now }
+    });
+
     res.json({
       success: true,
       data: {
@@ -94,6 +100,7 @@ router.get('/dashboard', async (req, res) => {
           monthlyExpenses,
           monthlyNetProfit: monthlyRevenue - monthlyExpenses,
           expiringSoon,
+          expiredCount,
         },
         recentMembers,
         recentPayments,

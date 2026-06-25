@@ -53,20 +53,20 @@ export const Reports = () => {
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '2rem' }}>
         <div className="glass-card">
           <span style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>Aggregated Revenue</span>
-          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.25rem' }}>+${totalRevenue}</h3>
+          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.25rem' }}>+₹{totalRevenue}</h3>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Last 6 months combined</p>
         </div>
 
         <div className="glass-card">
           <span style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>Aggregated Expenses</span>
-          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--danger)', marginTop: '0.25rem' }}>-${totalExpenses}</h3>
+          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--danger)', marginTop: '0.25rem' }}>-₹{totalExpenses}</h3>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Last 6 months combined</p>
         </div>
 
         <div className="glass-card">
           <span style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>Net Yield / Savings</span>
           <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: totalProfit >= 0 ? 'var(--success)' : 'var(--danger)', marginTop: '0.25rem' }}>
-            {totalProfit >= 0 ? '+' : '-'}${Math.abs(totalProfit)}
+            {totalProfit >= 0 ? '+' : '-'}₹{Math.abs(totalProfit)}
           </h3>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Overall efficiency rate</p>
         </div>
@@ -117,7 +117,7 @@ export const Reports = () => {
                         position: 'relative',
                         transition: 'height 0.5s ease'
                       }}
-                      title={`Revenue: $${month.revenue}`}
+                      title={`Revenue: ₹${month.revenue}`}
                     ></div>
                     {/* Expense Bar */}
                     <div
@@ -129,7 +129,7 @@ export const Reports = () => {
                         position: 'relative',
                         transition: 'height 0.5s ease'
                       }}
-                      title={`Expenses: $${month.expenses}`}
+                      title={`Expenses: ₹${month.expenses}`}
                     ></div>
                   </div>
                   {/* Label */}
@@ -208,7 +208,7 @@ export const Reports = () => {
                   <div key={idx}>
                     <div className="flex-between mb-1" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
                       <span style={{ textTransform: 'capitalize' }}>{item.category}</span>
-                      <span>${item.amount} ({percent}%)</span>
+                      <span>₹{item.amount} ({percent}%)</span>
                     </div>
                     {/* Progress line */}
                     <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>

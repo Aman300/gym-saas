@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
-import { Plus, Receipt, ShieldAlert, Edit3, Trash2, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Receipt, ShieldAlert, Edit3, Trash2, Calendar, IndianRupee } from 'lucide-react';
 
 export const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -137,7 +137,7 @@ export const Expenses = () => {
           <div>
             <span style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>Total Operational Outgoings</span>
             <h3 style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.25rem' }}>
-              ${expenses.reduce((acc, e) => acc + e.amount, 0)}
+              ₹{expenses.reduce((acc, e) => acc + e.amount, 0)}
             </h3>
           </div>
         </div>
@@ -180,7 +180,7 @@ export const Expenses = () => {
                       {expense.category}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 700, color: 'var(--danger)' }}>-${expense.amount}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--danger)' }}>-₹{expense.amount}</td>
                   <td>{new Date(expense.expenseDate).toLocaleDateString()}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{expense.description || '—'}</td>
                   <td style={{ textAlign: 'right' }}>
@@ -224,9 +224,9 @@ export const Expenses = () => {
 
           <div className="grid-2">
             <div className="form-group">
-              <label className="form-label">Expense Amount (USD) *</label>
+              <label className="form-label">Expense Amount (INR) *</label>
               <div style={{ position: 'relative' }}>
-                <DollarSign size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                <IndianRupee size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                 <input
                   className="form-input"
                   style={{ paddingLeft: '2rem' }}

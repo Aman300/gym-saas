@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import { Plus, Search, Edit3, Trash2, ShieldAlert } from 'lucide-react';
 
 export const Members = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterParam = searchParams.get('filter') || '';
+
   const [members, setMembers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  
+  const [statusFilter, setStatusFilter] = useState(filterParam);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalMembersCount, setTotalMembersCount] = useState(0);
+  const itemsPerPage = 10;
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
@@ -23,6 +31,7 @@ export const Members = () => {
   const [dob, setDob] = useState('');
   const [planId, setPlanId] = useState('');
   const [membershipStart, setMembershipStart] = useState('');
+  const [membershipEnd, setMembershipEnd] = useState('');
   const [status, setStatus] = useState('active');
   const [membershipStatus, setMembershipStatus] = useState('unpaid');
   const [emergencyName, setEmergencyName] = useState('');
@@ -32,13 +41,17 @@ export const Members = () => {
 
   const fetchMembers = async () => {
     try {
-      let endpoint = `/members?search=${search}`;
+      let endpoint = `/members?page=${currentPage}&limit=${itemsPerPage}&search=${search}`;
       if (statusFilter) {
         endpoint += `&status=${statusFilter}`;
       }
       const res = await api.get(endpoint);
       if (res.success) {
         setMembers(res.data);
+        if (res.pagination) {
+          setTotalPages(res.pagination.pages);
+          setTotalMembersCount(res.pagination.total);
+        }
       }
     } catch (err) {
       console.error('Error fetching members:', err);
@@ -61,7 +74,7 @@ export const Members = () => {
 
   useEffect(() => {
     fetchMembers();
-  }, [search, statusFilter]);
+  }, [currentPage, search, statusFilter]);
 
   useEffect(() => {
     fetchPlans();
@@ -80,6 +93,7 @@ export const Members = () => {
     setDob('');
     if (plans.length > 0) setPlanId(plans[0]._id);
     setMembershipStart(new Date().toISOString().split('T')[0]);
+    setMembershipEnd('');
     setStatus('active');
     setMembershipStatus('unpaid');
     setEmergencyName('');
@@ -98,6 +112,7 @@ export const Members = () => {
     setDob(member.dob ? new Date(member.dob).toISOString().split('T')[0] : '');
     setPlanId(member.planId?._id || '');
     setMembershipStart(new Date(member.membershipStart).toISOString().split('T')[0]);
+    setMembershipEnd(member.membershipEnd ? new Date(member.membershipEnd).toISOString().split('T')[0] : '');
     setStatus(member.status);
     setMembershipStatus(member.membershipStatus);
     setEmergencyName(member.emergencyContact?.name || '');
@@ -134,6 +149,7 @@ export const Members = () => {
       dob: dob || undefined,
       planId,
       membershipStart,
+      membershipEnd: membershipEnd || undefined,
       status,
       membershipStatus,
       emergencyContact: {
@@ -161,6 +177,19 @@ export const Members = () => {
     }
   };
 
+  const handleFilterChange = (filter) => {
+    setStatusFilter(filter);
+    setCurrentPage(1);
+    if (filter) {
+      setSearchParams({ filter });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const showStart = members.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const showEnd = showStart + members.length - 1;
+
   return (
     <div className="page-container">
       <div className="flex-between mb-4">
@@ -186,30 +215,40 @@ export const Members = () => {
                 type="text"
                 placeholder="Search by name, phone, code or email..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <button
               className={`btn ${statusFilter === '' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem' }}
-              onClick={() => setStatusFilter('')}
+              onClick={() => handleFilterChange('')}
             >
               All
             </button>
             <button
               className={`btn ${statusFilter === 'active' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem' }}
-              onClick={() => setStatusFilter('active')}
+              onClick={() => handleFilterChange('active')}
             >
               Active
             </button>
             <button
+              className={`btn ${statusFilter === 'expired' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '0.5rem 1rem' }}
+              onClick={() => handleFilterChange('expired')}
+            >
+              Expired
+            </button>
+            <button
               className={`btn ${statusFilter === 'inactive' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '0.5rem 1rem' }}
-              onClick={() => setStatusFilter('inactive')}
+              onClick={() => handleFilterChange('inactive')}
             >
               Inactive
             </button>
@@ -252,7 +291,7 @@ export const Members = () => {
                   </td>
                   <td>{member.phone}</td>
                   <td>{member.planId?.name || 'No Plan'}</td>
-                  <td>${member.planId?.price || 0}</td>
+                  <td>₹{member.planId?.price || 0}</td>
                   <td>
                     <span style={{
                       color: new Date(member.membershipEnd) < new Date() ? 'var(--danger)' : 'var(--text-primary)',
@@ -288,6 +327,49 @@ export const Members = () => {
         </table>
       </div>
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex-between" style={{ marginTop: '1.5rem', padding: '0.5rem 0' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Showing {showStart} to {showEnd} of {totalMembersCount} members
+          </span>
+          <div className="flex-align-center" style={{ gap: '0.35rem' }}>
+            <button
+              className="btn btn-secondary"
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                className={`btn ${currentPage === page ? 'btn-primary' : 'btn-secondary'}`}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  fontSize: '0.8rem',
+                  minWidth: '32px'
+                }}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              className="btn btn-secondary"
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal Form */}
       <Modal
         isOpen={isModalOpen}
@@ -303,7 +385,7 @@ export const Members = () => {
 
         <form onSubmit={handleSubmit}>
           <h4 style={{ margin: '0 0 0.75rem 0', opacity: 0.8, fontSize: '0.825rem', textTransform: 'uppercase' }}>General Info</h4>
-          
+
           <div className="form-group">
             <label className="form-label">Full Name *</label>
             <input
@@ -361,20 +443,21 @@ export const Members = () => {
           </div>
 
           <h4 style={{ margin: '1.25rem 0 0.75rem 0', opacity: 0.8, fontSize: '0.825rem', textTransform: 'uppercase' }}>Membership Details</h4>
-          
+
+          <div className="form-group">
+            <label className="form-label">Membership Plan *</label>
+            <select className="form-input" value={planId} onChange={(e) => setPlanId(e.target.value)} required>
+              {plans.length === 0 ? (
+                <option value="">-- No plans configured yet --</option>
+              ) : (
+                plans.map(p => (
+                  <option key={p._id} value={p._id}>{p.name} (₹{p.price})</option>
+                ))
+              )}
+            </select>
+          </div>
+
           <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label">Membership Plan *</label>
-              <select className="form-input" value={planId} onChange={(e) => setPlanId(e.target.value)} required>
-                {plans.length === 0 ? (
-                  <option value="">-- No plans configured yet --</option>
-                ) : (
-                  plans.map(p => (
-                    <option key={p._id} value={p._id}>{p.name} (${p.price})</option>
-                  ))
-                )}
-              </select>
-            </div>
             <div className="form-group">
               <label className="form-label">Start Date *</label>
               <input
@@ -383,6 +466,15 @@ export const Members = () => {
                 value={membershipStart}
                 onChange={(e) => setMembershipStart(e.target.value)}
                 required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Expiry Date (Override)</label>
+              <input
+                className="form-input"
+                type="date"
+                value={membershipEnd}
+                onChange={(e) => setMembershipEnd(e.target.value)}
               />
             </div>
           </div>
@@ -405,7 +497,7 @@ export const Members = () => {
           </div>
 
           <h4 style={{ margin: '1.25rem 0 0.75rem 0', opacity: 0.8, fontSize: '0.825rem', textTransform: 'uppercase' }}>Emergency Contact</h4>
-          
+
           <div className="grid-2">
             <div className="form-group">
               <label className="form-label">Contact Name</label>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
-import { Plus, Edit3, Trash2, ShieldAlert, Award, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Edit3, Trash2, ShieldAlert, Award, Calendar, IndianRupee } from 'lucide-react';
 
 export const Plans = () => {
   const [plans, setPlans] = useState([]);
@@ -196,7 +196,7 @@ export const Plans = () => {
                 paddingTop: '1rem',
                 marginTop: 'auto'
               }}>
-                <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>${plan.price}</span>
+                <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>₹{plan.price}</span>
                 <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginLeft: '0.25rem' }}>
                   / total package
                 </span>
@@ -234,9 +234,9 @@ export const Plans = () => {
 
           <div className="grid-2">
             <div className="form-group">
-              <label className="form-label">Price (USD) *</label>
+              <label className="form-label">Price (INR) *</label>
               <div style={{ position: 'relative' }}>
-                <DollarSign size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                <IndianRupee size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                 <input
                   className="form-input"
                   style={{ paddingLeft: '2rem' }}
