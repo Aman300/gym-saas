@@ -34,7 +34,9 @@ export const Sidebar = ({ isOpen, onClose }) => {
           <Dumbbell className="logo-icon" size={28} />
           <div>
             <h1 className="gym-title">{tenant?.name || 'PowerGym'}</h1>
-            <span className="saas-badge">SaaS Partner</span>
+            <span className="saas-badge" style={{ textTransform: 'capitalize' }}>
+              {tenant?.subscriptionPlan ? `${tenant.subscriptionPlan} Plan` : 'SaaS Partner'}
+            </span>
           </div>
         </div>
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">

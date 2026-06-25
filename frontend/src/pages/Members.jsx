@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
-import { Plus, Search, Edit3, Trash2, ShieldAlert } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, ShieldAlert, History } from 'lucide-react';
 
 export const Members = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,9 +37,16 @@ export const Members = () => {
   const [emergencyName, setEmergencyName] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
 
+  // History Modal states
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyMember, setHistoryMember] = useState(null);
+  const [memberHistory, setMemberHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   const [formError, setFormError] = useState('');
 
   const fetchMembers = async () => {
+    setLoading(true);
     try {
       let endpoint = `/members?page=${currentPage}&limit=${itemsPerPage}&search=${search}`;
       if (statusFilter) {
@@ -55,6 +62,8 @@ export const Members = () => {
       }
     } catch (err) {
       console.error('Error fetching members:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,6 +91,13 @@ export const Members = () => {
     const today = new Date().toISOString().split('T')[0];
     setMembershipStart(today);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add' && plans.length > 0) {
+      openAddModal();
+      setSearchParams({});
+    }
+  }, [searchParams, plans]);
 
   const openAddModal = () => {
     setModalMode('add');
@@ -119,6 +135,23 @@ export const Members = () => {
     setEmergencyPhone(member.emergencyContact?.phone || '');
     setFormError('');
     setIsModalOpen(true);
+  };
+
+  const openHistoryModal = async (member) => {
+    setHistoryMember(member);
+    setMemberHistory([]);
+    setLoadingHistory(true);
+    setIsHistoryModalOpen(true);
+    try {
+      const res = await api.get(`/payments?memberId=${member._id}&limit=100`);
+      if (res.success) {
+        setMemberHistory(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching member history:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -273,7 +306,46 @@ export const Members = () => {
             </tr>
           </thead>
           <tbody>
-            {members.length === 0 ? (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={idx} style={{ pointerEvents: 'none' }}>
+                  <td>
+                    <div className="skeleton skeleton-text" style={{ width: '80px', height: '1.25rem', marginBottom: 0 }}></div>
+                  </td>
+                  <td>
+                    <div>
+                      <div className="skeleton skeleton-text" style={{ width: '120px', height: '1rem', marginBottom: '0.25rem' }}></div>
+                      <div className="skeleton skeleton-text" style={{ width: '150px', height: '0.75rem', marginBottom: 0 }}></div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-text" style={{ width: '100px', height: '1rem', marginBottom: 0 }}></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-text" style={{ width: '110px', height: '1rem', marginBottom: 0 }}></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-text" style={{ width: '60px', height: '1rem', marginBottom: 0 }}></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-text" style={{ width: '90px', height: '1rem', marginBottom: 0 }}></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-rect" style={{ width: '60px', height: '1.5rem', borderRadius: '9999px' }}></div>
+                  </td>
+                  <td>
+                    <div className="skeleton skeleton-rect" style={{ width: '60px', height: '1.5rem', borderRadius: '9999px' }}></div>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', gap: '0.25rem', justifyContent: 'flex-end', width: '100%' }}>
+                      <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                      <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                      <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : members.length === 0 ? (
               <tr>
                 <td colSpan="9" style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-tertiary)' }}>
                   No members found matching your search.
@@ -312,10 +384,13 @@ export const Members = () => {
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '0.25rem' }}>
-                      <button className="btn-icon" onClick={() => openEditModal(member)}>
+                      <button className="btn-icon" onClick={() => openHistoryModal(member)} title="View Payment & Renewal History">
+                        <History size={16} />
+                      </button>
+                      <button className="btn-icon" onClick={() => openEditModal(member)} title="Edit Details">
                         <Edit3 size={16} />
                       </button>
-                      <button className="btn-icon" style={{ color: 'var(--danger)' }} onClick={() => handleDelete(member._id)}>
+                      <button className="btn-icon" style={{ color: 'var(--danger)' }} onClick={() => handleDelete(member._id)} title="Delete Member">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -530,6 +605,62 @@ export const Members = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Member History Modal */}
+      <Modal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        title={`Membership History: ${historyMember?.name || ''}`}
+      >
+        <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+            <strong>Member Code:</strong> {historyMember?.memberCode}
+          </p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+            <strong>Current Active Plan:</strong> {historyMember?.planId?.name || 'None'} (₹{historyMember?.planId?.price || 0})
+          </p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+            <strong>Current Membership Expiry:</strong> {historyMember?.membershipEnd ? new Date(historyMember.membershipEnd).toLocaleDateString() : '—'}
+          </p>
+        </div>
+
+        <div className="table-responsive" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+          {loadingHistory ? (
+            <p style={{ textAlign: 'center', padding: '2rem 0' }}>Loading transactions ledger...</p>
+          ) : memberHistory.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-tertiary)' }}>No historical subscription or payment records found for this member.</p>
+          ) : (
+            <table className="table" style={{ fontSize: '0.85rem' }}>
+              <thead>
+                <tr>
+                  <th>Plan Purchased</th>
+                  <th>Amount Paid</th>
+                  <th>Payment Date</th>
+                  <th>Method</th>
+                  <th>Notes/Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberHistory.map((h) => (
+                  <tr key={h._id}>
+                    <td style={{ fontWeight: 600 }}>{h.planId?.name || 'Deleted Plan'}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--success)' }}>₹{h.amount}</td>
+                    <td>{new Date(h.paymentDate).toLocaleDateString()} {new Date(h.paymentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td><span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.15rem 0.35rem' }}>{h.paymentMethod}</span></td>
+                    <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{h.notes || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="modal-footer" style={{ margin: '1.5rem -1.5rem -1.5rem -1.5rem' }}>
+          <button className="btn btn-secondary" type="button" onClick={() => setIsHistoryModalOpen(false)}>
+            Close
+          </button>
+        </div>
       </Modal>
     </div>
   );

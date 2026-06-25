@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import { Plus, Search, IndianRupee, ShieldAlert, CreditCard } from 'lucide-react';
 
 export const Payments = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [payments, setPayments] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +73,13 @@ export const Payments = () => {
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'new' && members.length > 0) {
+      openPaymentModal();
+      setSearchParams({});
+    }
+  }, [searchParams, members]);
 
   // When selected member changes, update default plan and amount automatically
   const handleMemberChange = (id) => {

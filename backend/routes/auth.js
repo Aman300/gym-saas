@@ -44,6 +44,10 @@ router.post('/register', async (req, res) => {
       slug: finalSlug,
       address,
       phone,
+      subscriptionPlan: 'trial',
+      subscriptionStatus: 'trialing',
+      subscriptionStart: new Date(),
+      subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     });
 
     // Create Owner User
@@ -98,6 +102,18 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Account is deactivated' });
     }
 
+    // Check if tenant is active
+    if (user.tenantId) {
+      if (!user.tenantId.isActive) {
+        return res.status(403).json({ success: false, message: 'Gym tenant account is deactivated' });
+      }
+
+      const now = new Date();
+      if (user.tenantId.subscriptionEnd && new Date(user.tenantId.subscriptionEnd) < now) {
+        return res.status(403).json({ success: false, message: 'Your Gym SaaS subscription has expired. Please contact the system administrator.' });
+      }
+    }
+
     // Match password
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
@@ -113,11 +129,11 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      tenant: {
+      tenant: user.tenantId ? {
         id: user.tenantId._id,
         name: user.tenantId.name,
         slug: user.tenantId.slug,
-      },
+      } : null,
     });
   } catch (error) {
     console.error(error);

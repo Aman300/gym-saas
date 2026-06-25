@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
 import { Plus, Edit3, Trash2, ShieldAlert, Award, Calendar, IndianRupee } from 'lucide-react';
 
 export const Plans = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -37,6 +39,13 @@ export const Plans = () => {
   useEffect(() => {
     fetchPlans();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'new') {
+      openAddModal();
+      setSearchParams({});
+    }
+  }, [searchParams]);
 
   const openAddModal = () => {
     setModalMode('add');

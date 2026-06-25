@@ -16,7 +16,7 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretgymkey123!');
 
       // Get user from the token and attach to request
-      req.user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id).populate('tenantId').select('-password');
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
@@ -26,8 +26,20 @@ const protect = async (req, res, next) => {
         return res.status(403).json({ success: false, message: 'User account is deactivated' });
       }
 
+      // If user belongs to a tenant, check if tenant is active
+      if (req.user.tenantId) {
+        if (!req.user.tenantId.isActive) {
+          return res.status(403).json({ success: false, message: 'Gym tenant account is deactivated' });
+        }
+
+        const now = new Date();
+        if (req.user.tenantId.subscriptionEnd && new Date(req.user.tenantId.subscriptionEnd) < now) {
+          return res.status(403).json({ success: false, message: 'Your Gym SaaS subscription has expired. Please contact the system administrator.' });
+        }
+      }
+
       // Attach tenantId to request for easy access
-      req.tenantId = req.user.tenantId;
+      req.tenantId = req.user.tenantId ? req.user.tenantId._id : null;
 
       next();
     } catch (error) {

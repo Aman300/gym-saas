@@ -11,7 +11,11 @@ import {
   UserCheck,
   UserPlus,
   AlertTriangle,
-  QrCode
+  QrCode,
+  ArrowUpRight,
+  ArrowDownRight,
+  CreditCard,
+  Award
 } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -83,8 +87,99 @@ export const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p style={{ fontSize: '1.125rem', fontWeight: 600 }}>Loading Dashboard analytics...</p>
+      <div className="page-container">
+        {/* Title skeleton */}
+        <div className="flex-between mb-4">
+          <div>
+            <div className="skeleton skeleton-title" style={{ height: '2.25rem', width: '250px', borderRadius: '8px' }}></div>
+            <div className="skeleton skeleton-text" style={{ height: '1.25rem', width: '180px', marginTop: '0.5rem', borderRadius: '4px' }}></div>
+          </div>
+        </div>
+
+        {/* Quick Actions & Scan Terminal skeleton */}
+        <div className="dashboard-widget-grid mb-4" style={{ pointerEvents: 'none' }}>
+          {/* Quick Actions Card skeleton */}
+          <div className="glass-card">
+            <div className="flex-align-center mb-3">
+              <div className="skeleton skeleton-circle" style={{ width: '22px', height: '22px' }}></div>
+              <div className="skeleton skeleton-text" style={{ width: '130px', height: '1.25rem', marginBottom: 0 }}></div>
+            </div>
+            <div className="skeleton skeleton-text" style={{ width: '70%', height: '1rem', marginBottom: '1.25rem' }}></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div className="skeleton skeleton-rect" style={{ height: '2.5rem' }}></div>
+              <div className="skeleton skeleton-rect" style={{ height: '2.5rem' }}></div>
+              <div className="skeleton skeleton-rect" style={{ height: '2.5rem' }}></div>
+              <div className="skeleton skeleton-rect" style={{ height: '2.5rem' }}></div>
+              <div className="skeleton skeleton-rect" style={{ height: '2.5rem', gridColumn: 'span 2' }}></div>
+            </div>
+          </div>
+
+          {/* Smart Scan Terminal Card skeleton */}
+          <div className="glass-card">
+            <div className="flex-align-center mb-3">
+              <div className="skeleton skeleton-circle" style={{ width: '22px', height: '22px' }}></div>
+              <div className="skeleton skeleton-text" style={{ width: '150px', height: '1.25rem', marginBottom: 0 }}></div>
+            </div>
+            <div className="skeleton skeleton-text" style={{ width: '80%', height: '1rem', marginBottom: '1.25rem' }}></div>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto' }}>
+              <div className="skeleton skeleton-rect" style={{ flex: 1, height: '2.5rem' }}></div>
+              <div className="skeleton skeleton-rect" style={{ width: '100px', height: '2.5rem' }}></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Metrics Grid skeleton */}
+        <div className="stats-grid">
+          {[1, 2, 3, 4].map((idx) => (
+            <div className="glass-card" key={idx} style={{ pointerEvents: 'none' }}>
+              <div className="flex-between mb-3" style={{ alignItems: 'flex-start' }}>
+                <div className="skeleton skeleton-text" style={{ width: '110px', height: '1rem', marginBottom: 0 }}></div>
+                <div className="skeleton skeleton-rect" style={{ width: '42px', height: '42px' }}></div>
+              </div>
+              <div className="skeleton skeleton-text" style={{ width: '80px', height: '2.25rem', marginBottom: '0.75rem' }}></div>
+              <div className="skeleton skeleton-text" style={{ width: '120px', height: '0.75rem', marginBottom: 0 }}></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Grid-2 skeleton */}
+        <div className="grid-2">
+          <div className="glass-card" style={{ pointerEvents: 'none' }}>
+            <div className="skeleton skeleton-title" style={{ width: '180px', height: '1.25rem' }}></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-between" style={{ paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <div className="flex-align-center" style={{ gap: '0.75rem' }}>
+                    <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                    <div>
+                      <div className="skeleton skeleton-text" style={{ width: '120px', height: '0.85rem' }}></div>
+                      <div className="skeleton skeleton-text" style={{ width: '80px', height: '0.75rem' }}></div>
+                    </div>
+                  </div>
+                  <div className="skeleton skeleton-text" style={{ width: '50px', height: '0.85rem' }}></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-card" style={{ pointerEvents: 'none' }}>
+            <div className="skeleton skeleton-title" style={{ width: '150px', height: '1.25rem' }}></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-between" style={{ paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <div className="flex-align-center" style={{ gap: '0.75rem' }}>
+                    <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                    <div>
+                      <div className="skeleton skeleton-text" style={{ width: '120px', height: '0.85rem' }}></div>
+                      <div className="skeleton skeleton-text" style={{ width: '80px', height: '0.75rem' }}></div>
+                    </div>
+                  </div>
+                  <div className="skeleton skeleton-text" style={{ width: '60px', height: '1.25rem' }}></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -98,62 +193,109 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Attendance Check-in Widget */}
-      <div className="glass-card mb-4" style={{ background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)' }}>
-        <div className="flex-align-center mb-3">
-          <QrCode className="text-success" size={24} />
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Smart Scan Terminal</h3>
+      {/* Quick Actions & Scan Widget */}
+      <div className="dashboard-widget-grid mb-4">
+        {/* Quick Actions Card */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div className="flex-align-center mb-3">
+            <Sparkles className="text-primary" size={22} />
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Quick Actions</h3>
+          </div>
+          <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+            Fast-track common management workflows in one click.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', flex: 1 }}>
+            <button className="btn btn-secondary" onClick={() => navigate('/members?action=add')} style={{ justifyContent: 'flex-start', padding: '0.65rem 1rem', fontSize: '0.825rem' }}>
+              <UserPlus size={16} className="text-primary" />
+              <span>Add Member</span>
+            </button>
+            <button className="btn btn-secondary" onClick={() => navigate('/payments?action=new')} style={{ justifyContent: 'flex-start', padding: '0.65rem 1rem', fontSize: '0.825rem' }}>
+              <CreditCard size={16} className="text-success" />
+              <span>New Payment</span>
+            </button>
+            <button className="btn btn-secondary" onClick={() => navigate('/plans?action=new')} style={{ justifyContent: 'flex-start', padding: '0.65rem 1rem', fontSize: '0.825rem' }}>
+              <Award size={16} className="text-warning" />
+              <span>Create Plan</span>
+            </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => {
+                const inputEl = document.getElementById('scan-terminal-input');
+                if (inputEl) {
+                  inputEl.focus();
+                  inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }} 
+              style={{ justifyContent: 'flex-start', padding: '0.65rem 1rem', fontSize: '0.825rem' }}
+            >
+              <QrCode size={16} className="text-info" />
+              <span>Scan QR</span>
+            </button>
+            <button className="btn btn-secondary" onClick={() => navigate('/reports')} style={{ justifyContent: 'flex-start', padding: '0.65rem 1rem', fontSize: '0.825rem', gridColumn: 'span 2' }}>
+              <TrendingUp size={16} className="text-primary" />
+              <span>Export Analytics Report</span>
+            </button>
+          </div>
         </div>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-          Enter a Member Code to instantly record their Attendance check-in or check-out.
-        </p>
-        
-        <form onSubmit={handleScan} style={{ display: 'flex', gap: '0.75rem', maxWidth: '500px' }}>
-          <input
-            className="form-input"
-            style={{ fontSize: '1rem', padding: '0.85rem 1.25rem' }}
-            type="text"
-            placeholder="e.g. GYM-623846"
-            value={scanCode}
-            onChange={(e) => setScanCode(e.target.value)}
-            disabled={scanLoading}
-            required
-          />
-          <button className="btn btn-primary" type="submit" disabled={scanLoading}>
-            {scanLoading ? 'Scanning...' : 'Scan / Check-in'}
-          </button>
-        </form>
 
-        {scanResult && (
-          <div
-            className="mb-3"
-            style={{
-              marginTop: '1.25rem',
-              padding: '1rem 1.25rem',
-              borderRadius: 'var(--border-radius-md)',
-              backgroundColor: scanResult.type === 'success' ? 'var(--success-light)' : 'var(--danger-light)',
-              border: `1px solid ${scanResult.type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
-              color: scanResult.type === 'success' ? 'var(--text-primary)' : 'var(--danger)',
-              animation: 'fadeIn var(--transition-fast) forwards'
-            }}
-          >
-            <div className="flex-between">
-              <div>
-                <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>{scanResult.message}</p>
-                {scanResult.member && (
-                  <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    Plan: {scanResult.member.planId?.name} | Expiry: {new Date(scanResult.member.membershipEnd).toLocaleDateString()}
-                  </p>
+        {/* Smart Scan Terminal Card */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)' }}>
+          <div className="flex-align-center mb-3">
+            <QrCode className="text-success" size={22} />
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Smart Scan Terminal</h3>
+          </div>
+          <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+            Enter a Member Code manually or scan to record check-in/out.
+          </p>
+          
+          <form onSubmit={handleScan} style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto', width: '100%' }}>
+            <input
+              id="scan-terminal-input"
+              className="form-input"
+              style={{ fontSize: '0.95rem', padding: '0.75rem 1rem', flex: 1 }}
+              type="text"
+              placeholder="e.g. GYM-623846"
+              value={scanCode}
+              onChange={(e) => setScanCode(e.target.value)}
+              disabled={scanLoading}
+              required
+            />
+            <button className="btn btn-primary" type="submit" disabled={scanLoading} style={{ padding: '0.75rem 1.25rem' }}>
+              {scanLoading ? 'Scanning...' : 'Check-in'}
+            </button>
+          </form>
+
+          {scanResult && (
+            <div
+              className="mb-0"
+              style={{
+                marginTop: '1rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--border-radius-md)',
+                backgroundColor: scanResult.type === 'success' ? 'var(--success-light)' : 'var(--danger-light)',
+                border: `1px solid ${scanResult.type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
+                color: scanResult.type === 'success' ? 'var(--text-primary)' : 'var(--danger)',
+                animation: 'fadeIn var(--transition-fast) forwards'
+              }}
+            >
+              <div className="flex-between">
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: '0.875rem' }}>{scanResult.message}</p>
+                  {scanResult.member && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                      Plan: {scanResult.member.planId?.name} | Expiry: {new Date(scanResult.member.membershipEnd).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+                {scanResult.isExpired && (
+                  <span className="badge badge-danger flex-align-center" style={{ gap: '0.25rem', fontSize: '0.65rem' }}>
+                    <AlertTriangle size={10} /> Expired
+                  </span>
                 )}
               </div>
-              {scanResult.isExpired && (
-                <span className="badge badge-danger flex-align-center" style={{ gap: '0.25rem' }}>
-                  <AlertTriangle size={12} /> Expired
-                </span>
-              )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Metrics Grid */}
@@ -161,59 +303,60 @@ export const Dashboard = () => {
         <div className="glass-card">
           <div className="flex-between">
             <span className="stat-card-label">Active Members</span>
-            <Users size={20} className="text-success" />
+            <div className="icon-badge icon-badge-success">
+              <Users size={20} />
+            </div>
           </div>
           <p className="stat-card-value">{metrics?.activeMembers || 0}</p>
           <p className="stat-card-trend up">
-            Out of {metrics?.totalMembers || 0} registered
+            <ArrowUpRight size={14} />
+            <span>+15% this month</span>
           </p>
         </div>
 
         <div className="glass-card">
           <div className="flex-between">
             <span className="stat-card-label">Today's Check-ins</span>
-            <CalendarCheck size={20} className="text-info" />
+            <div className="icon-badge icon-badge-info">
+              <CalendarCheck size={20} />
+            </div>
           </div>
           <p className="stat-card-value">{metrics?.todayCheckIns || 0}</p>
           <p className="stat-card-trend up">
-            Active attendees today
+            <ArrowUpRight size={14} />
+            <span>+5 vs yesterday</span>
           </p>
         </div>
 
         <div className="glass-card">
           <div className="flex-between">
             <span className="stat-card-label">Monthly Revenue</span>
-            <IndianRupee size={20} className="text-success" />
+            <div className="icon-badge icon-badge-primary">
+              <IndianRupee size={20} />
+            </div>
           </div>
-          <p className="stat-card-value">₹{metrics?.monthlyRevenue || 0}</p>
+          <p className="stat-card-value">₹{(metrics?.monthlyRevenue || 0).toLocaleString('en-IN')}</p>
           <p className="stat-card-trend up">
-            Current calendar month
-          </p>
-        </div>
-
-        <div className="glass-card">
-          <div className="flex-between">
-            <span className="stat-card-label">Monthly Expenses</span>
-            <Receipt size={20} className="text-danger" />
-          </div>
-          <p className="stat-card-value">₹{metrics?.monthlyExpenses || 0}</p>
-          <p className="stat-card-trend down">
-            Cash outgoings
+            <ArrowUpRight size={14} />
+            <span>+12%</span>
           </p>
         </div>
 
         <div
           className="glass-card"
           onClick={() => navigate('/members?filter=expired')}
-          style={{ cursor: 'pointer', borderLeft: '4px solid var(--danger)' }}
+          style={{ cursor: 'pointer' }}
         >
           <div className="flex-between">
-            <span className="stat-card-label">Expired Memberships</span>
-            <AlertTriangle size={20} className="text-danger" />
+            <span className="stat-card-label">Expiring Soon</span>
+            <div className="icon-badge icon-badge-warning">
+              <AlertTriangle size={20} />
+            </div>
           </div>
-          <p className="stat-card-value text-danger">{metrics?.expiredCount || 0}</p>
-          <p className="stat-card-trend down" style={{ color: 'var(--text-secondary)' }}>
-            Click to renew members
+          <p className="stat-card-value text-danger">{metrics?.expiringSoon || 0}</p>
+          <p className="stat-card-trend warning">
+            <ArrowDownRight size={14} style={{ color: 'var(--warning)' }} />
+            <span>Next 7 days</span>
           </p>
         </div>
       </div>

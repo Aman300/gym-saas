@@ -5,7 +5,9 @@ const UserSchema = new mongoose.Schema({
   tenantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tenant',
-    required: true,
+    required: function() {
+      return this.role !== 'superadmin';
+    },
   },
   name: {
     type: String,
@@ -26,7 +28,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['owner', 'manager', 'trainer'],
+    enum: ['superadmin', 'owner', 'manager', 'trainer'],
     default: 'owner',
   },
   isActive: {

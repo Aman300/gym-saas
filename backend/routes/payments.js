@@ -31,6 +31,18 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Membership plan not found' });
     }
 
+    // Calculate new start/end dates for the member
+    const now = new Date();
+    let startDate = paymentDate ? new Date(paymentDate) : now;
+    
+    // If member has a future expiry, extend it
+    if (member.membershipEnd && new Date(member.membershipEnd) > now) {
+      startDate = new Date(member.membershipEnd);
+    }
+    
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+
     // Create payment record
     const payment = await Payment.create({
       tenantId: req.tenantId,
@@ -38,12 +50,16 @@ router.post('/', async (req, res) => {
       planId,
       amount,
       paymentMethod,
-      paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
+      paymentDate: paymentDate ? new Date(paymentDate) : now,
       notes,
     });
 
-    // Mark member membershipStatus as 'paid'
+    // Update member plan details and membership status
+    member.planId = planId;
+    member.membershipStart = startDate;
+    member.membershipEnd = endDate;
     member.membershipStatus = 'paid';
+    member.status = 'active';
     await member.save();
 
     const populated = await Payment.findById(payment._id)
@@ -61,21 +77,27 @@ router.post('/', async (req, res) => {
 // @desc    Get all payment transactions
 // @access  Private
 router.get('/', async (req, res) => {
+  const { memberId } = req.query;
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const skip = (page - 1) * limit;
 
   try {
-    const total = await Payment.countDocuments({ tenantId: req.tenantId });
+    const query = { tenantId: req.tenantId };
+    if (memberId) {
+      query.memberId = memberId;
+    }
+
+    const total = await Payment.countDocuments(query);
 
     // Aggregate total revenue for this tenant
     const revenueAggregation = await Payment.aggregate([
-      { $match: { tenantId: req.tenantId } },
+      { $match: query },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
     const totalRevenue = revenueAggregation.length > 0 ? revenueAggregation[0].total : 0;
 
-    const payments = await Payment.find({ tenantId: req.tenantId })
+    const payments = await Payment.find(query)
       .populate('memberId', 'name memberCode email phone')
       .populate('planId', 'name price')
       .sort({ paymentDate: -1 })
