@@ -1,4 +1,6 @@
-const API_BASE = 'http://localhost:5050/api';
+const API_BASE = import.meta.env.PROD
+  ? 'https://gymapi.chakanroad.fun/api'
+  : 'http://localhost:5050/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('gym-token');

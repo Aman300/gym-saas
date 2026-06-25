@@ -10,7 +10,9 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Set API base URL
-  const API_URL = 'http://localhost:5050/api';
+  const API_URL = import.meta.env.PROD
+    ? 'https://gymapi.chakanroad.fun/api'
+    : 'http://localhost:5050/api';
 
   useEffect(() => {
     const loadUser = async () => {
