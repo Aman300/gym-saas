@@ -1,0 +1,446 @@
+import React, { useState, useEffect } from 'react';
+import { api } from '../utils/api';
+import Modal from '../components/Modal';
+import { Plus, Search, Edit3, Trash2, ShieldAlert } from 'lucide-react';
+
+export const Members = () => {
+  const [members, setMembers] = useState([]);
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [currentMemberId, setCurrentMemberId] = useState(null);
+
+  // Form states
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState('male');
+  const [dob, setDob] = useState('');
+  const [planId, setPlanId] = useState('');
+  const [membershipStart, setMembershipStart] = useState('');
+  const [status, setStatus] = useState('active');
+  const [membershipStatus, setMembershipStatus] = useState('unpaid');
+  const [emergencyName, setEmergencyName] = useState('');
+  const [emergencyPhone, setEmergencyPhone] = useState('');
+
+  const [formError, setFormError] = useState('');
+
+  const fetchMembers = async () => {
+    try {
+      let endpoint = `/members?search=${search}`;
+      if (statusFilter) {
+        endpoint += `&status=${statusFilter}`;
+      }
+      const res = await api.get(endpoint);
+      if (res.success) {
+        setMembers(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching members:', err);
+    }
+  };
+
+  const fetchPlans = async () => {
+    try {
+      const res = await api.get('/plans');
+      if (res.success) {
+        setPlans(res.data);
+        if (res.data.length > 0) {
+          setPlanId(res.data[0]._id);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching plans:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMembers();
+  }, [search, statusFilter]);
+
+  useEffect(() => {
+    fetchPlans();
+    // Default start date is today
+    const today = new Date().toISOString().split('T')[0];
+    setMembershipStart(today);
+  }, []);
+
+  const openAddModal = () => {
+    setModalMode('add');
+    setCurrentMemberId(null);
+    setName('');
+    setEmail('');
+    setPhone('');
+    setGender('male');
+    setDob('');
+    if (plans.length > 0) setPlanId(plans[0]._id);
+    setMembershipStart(new Date().toISOString().split('T')[0]);
+    setStatus('active');
+    setMembershipStatus('unpaid');
+    setEmergencyName('');
+    setEmergencyPhone('');
+    setFormError('');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (member) => {
+    setModalMode('edit');
+    setCurrentMemberId(member._id);
+    setName(member.name);
+    setEmail(member.email || '');
+    setPhone(member.phone);
+    setGender(member.gender || 'male');
+    setDob(member.dob ? new Date(member.dob).toISOString().split('T')[0] : '');
+    setPlanId(member.planId?._id || '');
+    setMembershipStart(new Date(member.membershipStart).toISOString().split('T')[0]);
+    setStatus(member.status);
+    setMembershipStatus(member.membershipStatus);
+    setEmergencyName(member.emergencyContact?.name || '');
+    setEmergencyPhone(member.emergencyContact?.phone || '');
+    setFormError('');
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this member?')) return;
+
+    try {
+      const res = await api.delete(`/members/${id}`);
+      if (res.success) {
+        fetchMembers();
+      }
+    } catch (err) {
+      console.error('Error deleting member:', err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name || !phone || !planId) {
+      setFormError('Please fill in Name, Phone, and select a Plan.');
+      return;
+    }
+
+    const payload = {
+      name,
+      email,
+      phone,
+      gender,
+      dob: dob || undefined,
+      planId,
+      membershipStart,
+      status,
+      membershipStatus,
+      emergencyContact: {
+        name: emergencyName,
+        phone: emergencyPhone
+      }
+    };
+
+    try {
+      let res;
+      if (modalMode === 'add') {
+        res = await api.post('/members', payload);
+      } else {
+        res = await api.put(`/members/${currentMemberId}`, payload);
+      }
+
+      if (res.success) {
+        setIsModalOpen(false);
+        fetchMembers();
+      } else {
+        setFormError(res.message || 'Error occurred while saving member.');
+      }
+    } catch (err) {
+      setFormError('Connection issue. Please try again.');
+    }
+  };
+
+  return (
+    <div className="page-container">
+      <div className="flex-between mb-4">
+        <div>
+          <h1 className="page-title">Gym Members</h1>
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>Register and manage your members catalog</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAddModal}>
+          <Plus size={16} />
+          <span>Add Member</span>
+        </button>
+      </div>
+
+      {/* Filters & Search section */}
+      <div className="glass-card mb-4" style={{ padding: '1rem 1.25rem' }}>
+        <div className="grid-2" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'center' }}>
+          <div className="flex-align-center" style={{ width: '100%' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <Search style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} size={18} />
+              <input
+                className="form-input"
+                style={{ paddingLeft: '2.5rem' }}
+                type="text"
+                placeholder="Search by name, phone, code or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <button
+              className={`btn ${statusFilter === '' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '0.5rem 1rem' }}
+              onClick={() => setStatusFilter('')}
+            >
+              All
+            </button>
+            <button
+              className={`btn ${statusFilter === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '0.5rem 1rem' }}
+              onClick={() => setStatusFilter('active')}
+            >
+              Active
+            </button>
+            <button
+              className={`btn ${statusFilter === 'inactive' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '0.5rem 1rem' }}
+              onClick={() => setStatusFilter('inactive')}
+            >
+              Inactive
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Members Table */}
+      <div className="table-responsive">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Member Code</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Assigned Plan</th>
+              <th>Plan Price</th>
+              <th>Membership Expiry</th>
+              <th>Billing</th>
+              <th>Status</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {members.length === 0 ? (
+              <tr>
+                <td colSpan="9" style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-tertiary)' }}>
+                  No members found matching your search.
+                </td>
+              </tr>
+            ) : (
+              members.map((member) => (
+                <tr key={member._id}>
+                  <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{member.memberCode}</td>
+                  <td>
+                    <div>
+                      <p style={{ fontWeight: 600 }}>{member.name}</p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{member.email}</p>
+                    </div>
+                  </td>
+                  <td>{member.phone}</td>
+                  <td>{member.planId?.name || 'No Plan'}</td>
+                  <td>${member.planId?.price || 0}</td>
+                  <td>
+                    <span style={{
+                      color: new Date(member.membershipEnd) < new Date() ? 'var(--danger)' : 'var(--text-primary)',
+                      fontWeight: new Date(member.membershipEnd) < new Date() ? '700' : 'normal'
+                    }}>
+                      {new Date(member.membershipEnd).toLocaleDateString()}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`badge badge-${member.membershipStatus}`}>
+                      {member.membershipStatus}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`badge badge-${member.status}`}>
+                      {member.status}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', gap: '0.25rem' }}>
+                      <button className="btn-icon" onClick={() => openEditModal(member)}>
+                        <Edit3 size={16} />
+                      </button>
+                      <button className="btn-icon" style={{ color: 'var(--danger)' }} onClick={() => handleDelete(member._id)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Modal Form */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalMode === 'add' ? 'Add New Member' : 'Edit Member Details'}
+      >
+        {formError && (
+          <div className="auth-error flex-align-center" style={{ marginBottom: '1.25rem' }}>
+            <ShieldAlert size={16} />
+            <span>{formError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <h4 style={{ margin: '0 0 0.75rem 0', opacity: 0.8, fontSize: '0.825rem', textTransform: 'uppercase' }}>General Info</h4>
+          
+          <div className="form-group">
+            <label className="form-label">Full Name *</label>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="e.g. Robert Smith"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Phone Number *</label>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="555-019-2834"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                className="form-input"
+                type="email"
+                placeholder="robert@mail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Gender</label>
+              <select className="form-input" value={gender} onChange={(e) => setGender(e.target.value)}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Date of Birth</label>
+              <input
+                className="form-input"
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <h4 style={{ margin: '1.25rem 0 0.75rem 0', opacity: 0.8, fontSize: '0.825rem', textTransform: 'uppercase' }}>Membership Details</h4>
+          
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Membership Plan *</label>
+              <select className="form-input" value={planId} onChange={(e) => setPlanId(e.target.value)} required>
+                {plans.length === 0 ? (
+                  <option value="">-- No plans configured yet --</option>
+                ) : (
+                  plans.map(p => (
+                    <option key={p._id} value={p._id}>{p.name} (${p.price})</option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Start Date *</label>
+              <input
+                className="form-input"
+                type="date"
+                value={membershipStart}
+                onChange={(e) => setMembershipStart(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Account Status</label>
+              <select className="form-input" value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Payment Status</label>
+              <select className="form-input" value={membershipStatus} onChange={(e) => setMembershipStatus(e.target.value)}>
+                <option value="unpaid">Unpaid</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+
+          <h4 style={{ margin: '1.25rem 0 0.75rem 0', opacity: 0.8, fontSize: '0.825rem', textTransform: 'uppercase' }}>Emergency Contact</h4>
+          
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Contact Name</label>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Jane Smith"
+                value={emergencyName}
+                onChange={(e) => setEmergencyName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Contact Phone</label>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="555-983-2039"
+                value={emergencyPhone}
+                onChange={(e) => setEmergencyPhone(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="modal-footer" style={{ margin: '1.5rem -1.5rem -1.5rem -1.5rem' }}>
+            <button className="btn btn-secondary" type="button" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </button>
+            <button className="btn btn-primary" type="submit">
+              {modalMode === 'add' ? 'Create Member' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+};
+
+export default Members;
